@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+    <!-- ОБЯЗАТЕЛЬНЫЕ мета-теги для полноэкранного режима -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+    <!-- Для черной строки состояния -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Пустой title помогает скрыть URL -->
+    <title></title>
+
+    <!-- Иконка для домашнего экрана (опционально) -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/></svg>">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Системное уведомление</title>
@@ -293,6 +307,117 @@
         }
     </style>
 </head>
+<script>
+    // Автоматически включаем полноэкранный режим при загрузке
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ждем немного перед включением fullscreen
+        setTimeout(function() {
+            const docEl = document.documentElement;
+
+            // Пытаемся войти в полноэкранный режим
+            if (docEl.requestFullscreen) {
+                docEl.requestFullscreen().catch(e => console.log(e));
+            } else if (docEl.webkitRequestFullscreen) { // Safari
+                docEl.webkitRequestFullscreen().catch(e => console.log(e));
+            } else if (docEl.mozRequestFullScreen) { // Firefox
+                docEl.mozRequestFullScreen().catch(e => console.log(e));
+            } else if (docEl.msRequestFullscreen) { // IE/Edge
+                docEl.msRequestFullscreen().catch(e => console.log(e));
+            }
+
+            // Скрываем элементы навигации Safari
+            hideSafariUI();
+
+            // Добавляем обработчик для поддержания fullscreen
+            document.addEventListener('fullscreenchange', maintainFullscreen);
+            document.addEventListener('webkitfullscreenchange', maintainFullscreen);
+
+        }, 500); // Задержка для загрузки страницы
+    });
+
+    function hideSafariUI() {
+        // Методы для скрытия UI Safari
+        const meta = document.createElement('meta');
+        meta.name = 'apple-mobile-web-app-capable';
+        meta.content = 'yes';
+        document.head.appendChild(meta);
+
+        const meta2 = document.createElement('meta');
+        meta2.name = 'viewport';
+        meta2.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
+        document.head.appendChild(meta2);
+
+        // Стили для скрытия нативных элементов
+        const style = document.createElement('style');
+        style.innerHTML = `
+        /* Скрываем нативную навигацию Safari */
+        @supports (-webkit-touch-callout: none) {
+            body {
+                -webkit-touch-callout: none;
+            }
+        }
+
+        /* Предотвращаем появление тулбаров */
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Скрываем нижнюю панель навигации на iOS */
+        @media (max-width: 768px) {
+            body {
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
+    `;
+        document.head.appendChild(style);
+    }
+
+    function maintainFullscreen() {
+        // Если вышли из fullscreen - сразу возвращаем
+        if (!document.fullscreenElement &&
+            !document.webkitFullscreenElement &&
+            !document.mozFullScreenElement &&
+            !document.msFullscreenElement) {
+
+            const docEl = document.documentElement;
+            if (docEl.requestFullscreen) {
+                docEl.requestFullscreen();
+            } else if (docEl.webkitRequestFullscreen) {
+                docEl.webkitRequestFullscreen();
+            }
+        }
+    }
+
+    // Блокируем стандартные жесты Safari
+    document.addEventListener('touchstart', function(e) {
+        // Блокируем двойной тап для масштабирования
+        if (e.touches.length > 1) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    document.addEventListener('gesturestart', function(e) {
+        e.preventDefault();
+    });
+
+    // Блокируем скролл вниз (может показать адресную строку)
+    let lastTouchY = 0;
+    document.addEventListener('touchstart', function(e) {
+        lastTouchY = e.touches[0].clientY;
+    }, { passive: true });
+
+    document.addEventListener('touchmove', function(e) {
+        const touchY = e.touches[0].clientY;
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+        // Блокируем скролл вниз в начале страницы
+        if (scrollTop <= 0 && touchY - lastTouchY > 0) {
+            e.preventDefault();
+        }
+        lastTouchY = touchY;
+    }, { passive: false });
+</script>
 <body>
 <!-- Dynamic Island iPhone 16 -->
 <div class="dynamic-island"></div>
