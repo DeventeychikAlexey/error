@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Безопасность iPhone</title>
+    <style>
+        /* Весь CSS код из Способ 2 */
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; background: #000; color: #fff; height: 100vh; overflow: hidden; position: relative; }
+        /* ... остальные стили ... */
+    </style>
+</head>
+<body>
+    <!-- Весь HTML код из Способ 2 -->
+    <div id="modalOverlay" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="warning-icon">⚠️</span>
+                <div class="modal-title">КРИТИЧЕСКОЕ УВЕДОМЛЕНИЕ</div>
+            </div>
+            
+            <div class="modal-content">
+                <div class="modal-message">
+                    Ваш iPhone был взломан<br>и находится под угрозой
+                </div>
+                
+                <div class="modal-message">
+                    <span class="alert-symbol">‼️</span>
+                    Требуется немедленное действие с вашей стороны!
+                    <span class="alert-symbol">‼️</span>
+                </div>
+                
+                <button id="modalButton" class="modal-button">OK</button>
+            </div>
+            
+            <div class="modal-footer">
+                <div class="footer-text">
+                    Apple Security • iOS 18.3 • ID: X7F9K2P4
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="pageContent" class="page-content">
+        <h1>📱 Учебная демонстрация</h1>
+        <p>Вы только что увидели пример фишингового сообщения, которое могут использовать мошенники.</p>
+        <br>
+        <p><strong>Как защититься:</strong></p>
+        <p>1. Не нажимайте OK в подозрительных окнах</p>
+        <p>2. Проверяйте адрес сайта в браузере</p>
+        <p>3. Обновляйте iOS до последней версии</p>
+        <br>
+        <p style="color: #34c759;">Это была симуляция для обучения кибербезопасности</p>
+    </div>
+
+    <script>
+        // Весь JavaScript код из Способ 2
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalOverlay = document.getElementById('modalOverlay');
+            const modalButton = document.getElementById('modalButton');
+            const pageContent = document.getElementById('pageContent');
+            
+            modalButton.addEventListener('click', function() {
+                modalOverlay.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(function() {
+                    modalOverlay.style.display = 'none';
+                    pageContent.style.display = 'block';
+                    document.body.style.background = '#000';
+                    
+                    if (navigator.vibrate) {
+                        navigator.vibrate([100, 50, 100]);
+                    }
+                }, 300);
+            });
+            
+            modalOverlay.addEventListener('click', function(e) {
+                if (e.target === modalOverlay) {
+                    e.stopPropagation();
+                }
+            });
+            
+            document.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+            }, { passive: false });
+            
+            document.addEventListener('gesturestart', function(e) {
+                e.preventDefault();
+            });
+            
+            setTimeout(function() {
+                if (navigator.vibrate) {
+                    navigator.vibrate(200);
+                }
+            }, 500);
+        });
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
