@@ -3,106 +3,564 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Безопасность iPhone</title>
+    <title>Системное уведомление</title>
     <style>
-        /* Весь CSS код из Способ 2 */
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; background: #000; color: #fff; height: 100vh; overflow: hidden; position: relative; }
-        /* ... остальные стили ... */
+        /* Сброс стилей */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* Основной фон - домашний экран iPhone с размытием */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+            background:
+                /* Реалистичный градиент iOS */
+                    linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            background-size: cover;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            /* Размытие фона под модалкой */
+            transition: filter 0.4s ease;
+        }
+
+        /* Иконки приложений на фоне (размытые) */
+        .app-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+            gap: 20px;
+            padding: 100px 20px 20px;
+            opacity: 0.7;
+        }
+
+        .app-icon {
+            background: linear-gradient(145deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.8);
+            font-size: 28px;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        /* Dock внизу экрана */
+        .dock {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            height: 70px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(30px);
+            border-radius: 25px;
+            border: 1px solid rgba(255,255,255,0.2);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 15px;
+        }
+
+        .dock-icon {
+            width: 55px;
+            height: 55px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        /* Верхняя панель iPhone */
+        .iphone-status-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 54px;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 25px;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            z-index: 900;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .time {
+            font-weight: 700;
+        }
+
+        .status-icons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        /* Dynamic Island для iPhone 16 */
+        .dynamic-island {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 130px;
+            height: 37px;
+            background: #000;
+            border-radius: 45px;
+            z-index: 901;
+            border: 1px solid #333;
+        }
+
+        /* Модальное окно - ЧЕТКОЕ, без размытия */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.65);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal {
+            background: #1c1c1e; /* Сплошной цвет, без прозрачности */
+            width: 100%;
+            max-width: 300px;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow:
+                    0 20px 60px rgba(0, 0, 0, 0.8),
+                    0 0 0 1px rgba(255, 255, 255, 0.05);
+            animation: modalAppear 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Заголовок модалки */
+        .modal-header {
+            padding: 24px 20px 18px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: linear-gradient(to bottom, #2c2c2e, #1c1c1e);
+        }
+
+        .warning-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+            display: block;
+            color: #ff3b30;
+            animation: pulse 1.5s infinite;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.2;
+            letter-spacing: -0.2px;
+        }
+
+        /* Контент модалки */
+        .modal-content {
+            padding: 26px 20px 22px;
+            text-align: center;
+        }
+
+        .modal-message {
+            font-size: 17px;
+            line-height: 1.4;
+            color: #fff;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-line {
+            color: #ff453a;
+            font-size: 16px;
+            line-height: 1.3;
+            margin: 20px 0 25px;
+            padding: 15px;
+            background: rgba(255, 59, 48, 0.08);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 59, 48, 0.15);
+            font-weight: 600;
+        }
+
+        /* Кнопка в стиле iOS - НЕ ЗАКРЫВАЕТ МОДАЛКУ */
+        .modal-button {
+            background: #007aff;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 17px;
+            font-size: 17px;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            margin-top: 5px;
+            letter-spacing: -0.2px;
+        }
+
+        .modal-button:active {
+            background: #0056cc;
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+
+        /* Футер с информацией */
+        .modal-footer {
+            padding: 18px 20px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            background: #151516;
+        }
+
+        .footer-text {
+            font-size: 12px;
+            color: #8e8e93;
+            line-height: 1.3;
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes modalAppear {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+            20%, 40%, 60%, 80% { transform: translateX(2px); }
+        }
+
+        /* Эффект мигания для тревоги */
+        @keyframes emergencyFlash {
+            0%, 100% { background-color: #1c1c1e; }
+            50% { background-color: #2a1a1a; }
+        }
     </style>
 </head>
 <body>
-    <!-- Весь HTML код из Способ 2 -->
-    <div id="modalOverlay" class="modal-overlay">
-        <div class="modal">
-            <div class="modal-header">
-                <span class="warning-icon">⚠️</span>
-                <div class="modal-title">КРИТИЧЕСКОЕ УВЕДОМЛЕНИЕ</div>
+<!-- Dynamic Island iPhone 16 -->
+<div class="dynamic-island"></div>
+
+<!-- Статус бар iPhone -->
+<div class="iphone-status-bar">
+    <div class="time" id="currentTime">11:19</div>
+    <div class="status-icons">
+        <span>📶</span>
+        <span>📡</span>
+        <span>🔋</span>
+    </div>
+</div>
+
+<!-- Фоновые иконки приложений -->
+<div class="app-grid">
+    <div class="app-icon">📱</div>
+    <div class="app-icon">✉️</div>
+    <div class="app-icon">📷</div>
+    <div class="app-icon">🌐</div>
+    <div class="app-icon">📞</div>
+    <div class="app-icon">📅</div>
+    <div class="app-icon">🎵</div>
+    <div class="app-icon">🗺️</div>
+    <div class="app-icon">⏰</div>
+    <div class="app-icon">📝</div>
+    <div class="app-icon">🛒</div>
+    <div class="app-icon">☁️</div>
+    <div class="app-icon">🎮</div>
+    <div class="app-icon">📚</div>
+    <div class="app-icon">⚙️</div>
+    <div class="app-icon">👤</div>
+</div>
+
+<!-- Dock внизу -->
+<div class="dock">
+    <div class="dock-icon">📞</div>
+    <div class="dock-icon">✉️</div>
+    <div class="dock-icon">🌐</div>
+    <div class="dock-icon">🎵</div>
+</div>
+
+<!-- Модальное окно - НЕ ЗАКРЫВАЕТСЯ -->
+<div id="modalOverlay" class="modal-overlay">
+    <div class="modal" id="mainModal">
+        <div class="modal-header">
+            <span class="warning-icon">⚠️</span>
+            <div class="modal-title">СИСТЕМНОЕ УВЕДОМЛЕНИЕ</div>
+        </div>
+
+        <div class="modal-content">
+            <div class="modal-message">
+                Ваш iPhone был взломан и находится под угрозой
             </div>
-            
-            <div class="modal-content">
-                <div class="modal-message">
-                    Ваш iPhone был взломан<br>и находится под угрозой
-                </div>
-                
-                <div class="modal-message">
-                    <span class="alert-symbol">‼️</span>
-                    Требуется немедленное действие с вашей стороны!
-                    <span class="alert-symbol">‼️</span>
-                </div>
-                
-                <button id="modalButton" class="modal-button">OK</button>
+
+            <div class="alert-line">
+                Требуется немедленное действие с вашей стороны!
             </div>
-            
-            <div class="modal-footer">
-                <div class="footer-text">
-                    Apple Security • iOS 18.3 • ID: X7F9K2P4
-                </div>
+
+            <button id="modalButton" class="modal-button">OK</button>
+        </div>
+
+        <div class="modal-footer">
+            <div class="footer-text">
+                Apple Security • iOS 18.3 • Серийный №: DLXJ2F9KP4
             </div>
         </div>
     </div>
-    
-    <div id="pageContent" class="page-content">
-        <h1>📱 Учебная демонстрация</h1>
-        <p>Вы только что увидели пример фишингового сообщения, которое могут использовать мошенники.</p>
-        <br>
-        <p><strong>Как защититься:</strong></p>
-        <p>1. Не нажимайте OK в подозрительных окнах</p>
-        <p>2. Проверяйте адрес сайта в браузере</p>
-        <p>3. Обновляйте iOS до последней версии</p>
-        <br>
-        <p style="color: #34c759;">Это была симуляция для обучения кибербезопасности</p>
-    </div>
+</div>
 
-    <script>
-        // Весь JavaScript код из Способ 2
-        document.addEventListener('DOMContentLoaded', function() {
-            const modalOverlay = document.getElementById('modalOverlay');
-            const modalButton = document.getElementById('modalButton');
-            const pageContent = document.getElementById('pageContent');
-            
-            modalButton.addEventListener('click', function() {
-                modalOverlay.style.animation = 'fadeOut 0.3s ease';
-                setTimeout(function() {
-                    modalOverlay.style.display = 'none';
-                    pageContent.style.display = 'block';
-                    document.body.style.background = '#000';
-                    
-                    if (navigator.vibrate) {
-                        navigator.vibrate([100, 50, 100]);
-                    }
-                }, 300);
-            });
-            
-            modalOverlay.addEventListener('click', function(e) {
-                if (e.target === modalOverlay) {
-                    e.stopPropagation();
-                }
-            });
-            
-            document.addEventListener('touchmove', function(e) {
-                e.preventDefault();
-            }, { passive: false });
-            
-            document.addEventListener('gesturestart', function(e) {
-                e.preventDefault();
-            });
-            
-            setTimeout(function() {
-                if (navigator.vibrate) {
-                    navigator.vibrate(200);
-                }
-            }, 500);
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalButton = document.getElementById('modalButton');
+        const mainModal = document.getElementById('mainModal');
+        const currentTime = document.getElementById('currentTime');
+        let clickCount = 0;
+
+        // Обновляем время в реальном времени
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            currentTime.textContent = `${hours}:${minutes}`;
+        }
+
+        updateTime();
+        setInterval(updateTime, 60000);
+
+        // При нажатии на OK - модалка НЕ закрывается
+        modalButton.addEventListener('click', function() {
+            clickCount++;
+
+            // Вибрация при каждом нажатии
+            if (navigator.vibrate) {
+                navigator.vibrate([100, 50, 100]);
+            }
+
+            // Меняем текст кнопки после первого нажатия
+            if (clickCount === 1) {
+                modalButton.textContent = "ПОВТОРИТЬ";
+                modalButton.style.background = "#5856d6";
+
+                // Добавляем анимацию тряски модалки
+                mainModal.style.animation = 'shake 0.5s ease';
+                setTimeout(() => {
+                    mainModal.style.animation = '';
+                }, 500);
+
+                // Меняем текст предупреждения
+                document.querySelector('.alert-line').innerHTML =
+                    "⚠️ НЕВОЗМОЖНО ВЫЙТИ ИЗ РЕЖИМА БЕЗОПАСНОСТИ ⚠️";
+            }
+
+            // После второго нажатия - еще больше эффектов
+            if (clickCount === 2) {
+                modalButton.textContent = "ОШИБКА";
+                modalButton.style.background = "#ff3b30";
+                modalButton.disabled = true;
+
+                // Анимация мигания для тревоги
+                mainModal.style.animation = 'emergencyFlash 1s infinite';
+
+                // Меняем заголовок
+                document.querySelector('.modal-title').textContent = "КРИТИЧЕСКИЙ СБОЙ";
+                document.querySelector('.warning-icon').textContent = "🚨";
+
+                // Меняем основной текст
+                document.querySelector('.modal-message').innerHTML =
+                    "Система безопасности заблокирована<br>Аварийный режим активирован";
+            }
+
+            // После третьего нажатия - финальное состояние
+            if (clickCount >= 3) {
+                // Ничего не происходит - кнопка уже заблокирована
+                // Это создает ощущение настоящего взлома
+            }
         });
-        
-        const style = document.createElement('style');
-        style.textContent = `
+
+        // Полностью блокируем любые жесты и закрытие
+        modalOverlay.addEventListener('click', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+        });
+
+        // Блокируем ВСЕ жесты на всем документе
+        document.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        });
+
+        // Блокируем контекстное меню (долгое нажатие)
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        // Блокируем клавиши навигации
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' || e.key === 'Backspace' ||
+                e.key === 'Home' || (e.ctrlKey && e.key === 'w')) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // Вибрация при попытке закрыть
+                if (navigator.vibrate) {
+                    navigator.vibrate([200]);
+                }
+            }
+        });
+
+        // Блокируем свайпы
+        let startX, startY;
+        document.addEventListener('touchstart', function(e) {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        }, { passive: false });
+
+        document.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+
+        // Добавляем вибрацию при открытии
+        setTimeout(function() {
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200, 100, 200]);
+            }
+
+            // Слегка трясем модалку при открытии
+            mainModal.style.animation = 'shake 0.8s ease';
+            setTimeout(() => {
+                mainModal.style.animation = '';
+            }, 800);
+        }, 500);
+
+        // Автоматически фокусируемся на кнопке
+        modalButton.focus();
+
+        // Периодическая вибрация для создания эффекта тревоги
+        setInterval(function() {
+            if (clickCount >= 2 && navigator.vibrate) {
+                navigator.vibrate([100]);
+            }
+        }, 3000);
+    });
+
+    // Добавляем стили для анимаций
+    const style = document.createElement('style');
+    style.textContent = `
             @keyframes fadeOut {
                 from { opacity: 1; }
                 to { opacity: 0; }
             }
+
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+                20%, 40%, 60%, 80% { transform: translateX(3px); }
+            }
+
+            @keyframes emergencyFlash {
+                0%, 100% {
+                    background-color: #1c1c1e;
+                    box-shadow: 0 0 20px rgba(255, 59, 48, 0.3);
+                }
+                50% {
+                    background-color: #2a1a1a;
+                    box-shadow: 0 0 30px rgba(255, 59, 48, 0.5);
+                }
+            }
+
+            /* Эффект при наведении на иконки (только для демо) */
+            .app-icon:hover, .dock-icon:hover {
+                transform: scale(0.95);
+                transition: transform 0.2s;
+            }
+
+            /* Запрещаем выделение текста */
+            * {
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                user-select: none;
+            }
+
+            /* Блокируем масштабирование */
+            html {
+                touch-action: none;
+                overscroll-behavior: none;
+            }
         `;
-        document.head.appendChild(style);
-    </script>
+    document.head.appendChild(style);
+
+    // Запрещаем масштабирование жестами
+    document.documentElement.style.zoom = "1";
+    document.documentElement.style.maxZoom = "1";
+    document.documentElement.style.minZoom = "1";
+
+    // Блокируем изменение ориентации
+    screen.orientation.lock('portrait').catch(() => {});
+
+    // Предотвращаем выход из полноэкранного режима
+    document.addEventListener('fullscreenchange', function() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        }
+    });
+</script>
 </body>
 </html>
